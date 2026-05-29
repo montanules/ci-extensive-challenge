@@ -1,0 +1,23 @@
+name: Auto Label Issues
+on:
+  issues:
+    types: [opened, edited]
+jobs:
+  label:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    steps:
+      - name: Apply labels
+        run: |
+          TEXT="$(echo "${{ github.event.issue.title }} ${{ github.event.issue.body }}" | tr 'A-Z' 'a-z')"
+          if echo "$TEXT" | grep -q "error"; then
+            curl -s -X POST "https://api.github.com/repos/${{ github.repository }}/issues/${{ github.event.issue.number }}/labels" \
+              -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+              -d '{"labels":["bug"]}'
+          fi
+          if echo "$TEXT" | grep -q "add"; then
+            curl -s -X POST "https://api.github.com/repos/${{ github.repository }}/issues/${{ github.event.issue.number }}/labels" \
+              -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+              -d '{"labels":["feature"]}'
+          fi
